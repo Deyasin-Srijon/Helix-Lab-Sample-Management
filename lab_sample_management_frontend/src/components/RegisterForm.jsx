@@ -72,7 +72,6 @@ export default function RegisterForm({ onSubmit, submitting }) {
         value={phone}
         onChange={(event) => setPhone(event.target.value)}
         error={errors.phone}
-        required
         autoComplete="tel"
       />
       <Button type="submit" loading={submitting} className="mt-2 w-full">
