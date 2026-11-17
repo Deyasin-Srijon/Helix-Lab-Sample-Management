@@ -1,0 +1,72 @@
+/*
+ * FILE: src/index.css
+ *
+ * PURPOSE:
+ * Global stylesheet for the Helix Lab Sample Management application.
+ * It imports web fonts, includes Tailwind CSS v4 directives, configures
+ * the design theme tokens, sets baseline typography and document dimensions,
+ * and enforces accessibility best practices (e.g., reduced motion preferences).
+ *
+ * ARCHITECTURAL LAYER:
+ * Presentation Layer / Global Styling & Design Tokens.
+ *
+ * DESIGN TOKENS DEFINED:
+ * - Fonts:
+ *   - Fira Sans: Humanist sans-serif for UI labels, headers, and body text.
+ *   - Fira Code: Monospace font with clear digit distinctions for sample IDs.
+ * - Colors:
+ *   - --color-navy: #1e3a5f (Primary brand header color)
+ *   - --color-navy-dark: #152a45 (Dark navy shade)
+ *   - --color-primary: #2563eb (Standard interactive blue)
+ *   - --color-primary-hover: #1d4ed8 (Darker blue for button hover states)
+ *   - --color-surface: #f8fafc (Light slate background)
+ *   - --color-border: #e2e8f0 (Border slate tint)
+ *
+ * CONSUMED BY:
+ * - `src/main.jsx` (imported at the very start of application bootstrapping).
+ */
+
+/* 1. Import web typography from Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Fira+Sans:wght@400;500;600;700&family=Fira+Code:wght@400;500;600&display=swap');
+
+/* 2. Import Tailwind CSS engine (Tailwind v4 syntax) */
+@import "tailwindcss";
+
+/* 3. Define custom Tailwind v4 theme extensions and CSS variables */
+@theme {
+  --font-sans: "Fira Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Fira Code", ui-monospace, monospace;
+  --color-navy: #1e3a5f;
+  --color-navy-dark: #152a45;
+  --color-primary: #2563eb;
+  --color-primary-hover: #1d4ed8;
+  --color-surface: #f8fafc;
+  --color-border: #e2e8f0;
+}
+
+/* 4. Ensure root DOM hierarchy spans at least full viewport height */
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+/* 5. Set default page styles and typography */
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  background-color: #f8fafc;
+  color: #0f172a;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* 6. Accessibility (a11y): Honor user operating system setting for reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
