@@ -263,10 +263,14 @@ export default function EditSamplePage() {
                   min="1"
                   step="1"
                   value={form.id}
-                  onChange={handleChange}
-                  className="h-11 w-full rounded-lg border border-slate-300 px-3 text-sm text-slate-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                  readOnly
+                  aria-describedby="sample-id-help"
+                  className="h-11 w-full cursor-not-allowed rounded-lg border border-slate-200 bg-slate-50 px-3 text-sm text-slate-500 outline-none"
                 />
                 {fieldErrors.id && <p className="mt-1 text-sm text-red-600">{fieldErrors.id}</p>}
+                <p id="sample-id-help" className="mt-1 text-xs text-slate-500">
+                  Sample ID cannot be changed.
+                </p>
               </div>
 
               {/* Sample Description textarea */}

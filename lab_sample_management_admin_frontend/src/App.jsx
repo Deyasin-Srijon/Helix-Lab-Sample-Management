@@ -48,13 +48,62 @@
  * - `default function App()`: The top-level React component.
  */
 
+import { useEffect } from 'react';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import ProtectedRoute from './components/ProtectedRoute';
-import { AuthProvider } from './context/AuthContext';
-import { SampleProvider } from './context/SampleContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import { SampleProvider, useSamples } from './context/SampleContext';
+import Toast from './components/Toast';
+import { checkBackend } from './services/healthService';
 import AdminDashboardPage from './pages/AdminDashboardPage';
 import AdminLoginPage from './pages/AdminLoginPage';
 import EditSamplePage from './pages/EditSamplePage';
+
+/**
+ * Checks backend availability once whenever the admin website is loaded.
+ * This mirrors the user frontend's startup health check by requesting GET /api/health.
+ * The authentication toast host is global, so the warning is visible on every route,
+ * including the login page.
+ */
+function BackendAvailabilityChecker() {
+  const { showToast } = useAuth();
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function checkServer() {
+      try {
+        await checkBackend();
+      } catch {
+        if (!cancelled) {
+          showToast(
+            'Backend is not connected. Please start the Spring Boot server and try again.',
+            'error'
+          );
+        }
+      }
+    }
+
+    checkServer();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [showToast]);
+
+  return null;
+}
+
+
+/**
+ * Displays login/logout notifications outside the route pages.
+ * This keeps the toast visible while login/logout redirects are happening.
+ */
+function AuthenticationToast() {
+  const { toast, clearToast } = useAuth();
+
+  return <Toast toast={toast} onClose={clearToast} />;
+}
 
 /**
  * App Component
@@ -82,6 +131,8 @@ export default function App() {
     <AuthProvider>
       {/* Provides sample data state (samples list, CRUD actions, statistics, toast alerts) */}
       <SampleProvider>
+        <AuthenticationToast />
+        <BackendAvailabilityChecker />
         {/* Enables HTML5 history API client-side routing */}
         <BrowserRouter>
           <Routes>

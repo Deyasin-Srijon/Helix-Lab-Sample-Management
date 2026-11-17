@@ -56,9 +56,9 @@
  * - `default function AdminLoginPage()`: The administrator sign-in page component.
  */
 
+import { FlaskConical } from 'lucide-react';
 import { useState } from 'react';
 import { Navigate } from 'react-router-dom';
-import { FlaskConical } from 'lucide-react';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { APP_NAME } from '../config/adminConfig';
 import { useAuth } from '../context/AuthContext';
@@ -81,9 +81,6 @@ export default function AdminLoginPage() {
 
   /** Validation error map: `{ username?: string, password?: string }` */
   const [fieldErrors, setFieldErrors] = useState({});
-
-  /** Server / authentication failure message string */
-  const [authError, setAuthError] = useState('');
 
   /** Form submission in-flight state */
   const [submitting, setSubmitting] = useState(false);
@@ -122,7 +119,6 @@ export default function AdminLoginPage() {
     // Step 1: Validate username and password presence
     const errors = validateLogin(username, password);
     setFieldErrors(errors);
-    setAuthError('');
 
     // Step 2: Halt if validation errors are detected
     if (hasErrors(errors)) {
@@ -133,8 +129,9 @@ export default function AdminLoginPage() {
     setSubmitting(true);
     try {
       const result = await login(username, password);
+      // AuthContext displays a success or error toast for this result.
       if (!result.success) {
-        setAuthError(result.message);
+        return;
       }
     } finally {
       setSubmitting(false);
@@ -156,17 +153,10 @@ export default function AdminLoginPage() {
 
         {/* Login form with noValidate to disable inconsistent browser default tooltips */}
         <form onSubmit={handleSubmit} noValidate className="space-y-5">
-          {/* General authentication error banner */}
-          {authError && (
-            <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700" role="alert">
-              {authError}
-            </div>
-          )}
-
           {/* Username / Email Input Field */}
           <div>
             <label htmlFor="username" className="mb-1.5 block text-sm font-medium text-slate-700">
-              Username or Email
+              Username
             </label>
             <input
               id="username"

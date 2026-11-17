@@ -18,7 +18,7 @@
  * DATA FLOW:
  * SampleContext.jsx
  *   → sampleService.getAllSamples()
- *   → apiClient.get('/samples')
+ *   → apiClient.get('/admin/samples')
  *   → HTTP GET to Spring Boot: ${API_BASE_URL}/samples
  *   → returns parsed List<SampleResponse>
  *
@@ -46,7 +46,7 @@ export const sampleService = {
    * @returns {Promise<Array<Object>>} List of SampleResponse objects from Spring Boot.
    */
   async getAllSamples() {
-    return apiClient.get('/samples');
+    return apiClient.get('/admin/samples');
   },
 
   /**
@@ -57,7 +57,7 @@ export const sampleService = {
    * @returns {Promise<Object>} SampleResponse object from Spring Boot.
    */
   async getSampleById(id) {
-    return apiClient.get(`/samples/${id}`);
+    return apiClient.get(`/admin/samples/${id}`);
   },
 
   /**
@@ -74,7 +74,7 @@ export const sampleService = {
       description: data.description,
       status: data.status,
     };
-    return apiClient.put(`/samples/${id}`, payload);
+    return apiClient.put(`/admin/samples/${id}`, payload);
   },
 
   /**
@@ -85,6 +85,6 @@ export const sampleService = {
    * @returns {Promise<any>} Deletion confirmation response.
    */
   async deleteSample(id) {
-    return apiClient.delete(`/samples/${id}`);
+    return apiClient.delete(`/admin/samples/${id}`);
   },
 };

@@ -7,7 +7,7 @@
  *
  * RESPONSIBILITIES:
  * - Configures the REST API base endpoint URL (`API_BASE_URL`), reading from Vite's
- *   `import.meta.env.VITE_API_BASE_URL` with a fallback to `http://localhost:8080/api`.
+ *   `import.meta.env.VITE_API_BASE_URL` with a fallback to `http://localhost:8081/api`.
  * - Defines the canonical domain list of allowable laboratory sample statuses (`SAMPLE_STATUSES`).
  * - Defines the default page item size (`PAGE_SIZE`) for tabular pagination.
  *
@@ -39,9 +39,9 @@
 /**
  * The base URL for the Spring Boot backend REST API.
  * Reads environment variable `VITE_API_BASE_URL` if defined; otherwise defaults
- * to the local Spring Boot development server port (`http://localhost:8080/api`).
+ * to the local Spring Boot development server port (`http://localhost:8081/api`).
  */
-export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api';
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8081/api';
 
 /**
  * Valid lifecycle states that a laboratory sample may hold.

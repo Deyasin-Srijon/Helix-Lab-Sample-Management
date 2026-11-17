@@ -17,7 +17,7 @@
  * DATA FLOW:
  * AuthContext.jsx
  *   → authService.login(username, password)
- *   → apiClient.post('/users/login', { email: username, password })
+ *   → apiClient.post('/admin/login', { email: username, password })
  *   → Spring Boot establishes server-side session (HttpSession)
  *   → Returns LoginResponse { userId, username, message }
  *
@@ -42,7 +42,7 @@ export const authService = {
    * @throws {Error} Throws with status 401 if session is not authenticated.
    */
   async getCurrentUser() {
-    return apiClient.get('/users/me');
+    return apiClient.get('/admin/me');
   },
 
   /**
@@ -55,7 +55,7 @@ export const authService = {
    */
   async login(username, password) {
     const identifier = (username || '').trim();
-    return apiClient.post('/users/login', {
+    return apiClient.post('/admin/login', {
       email: identifier,
       password,
     });
@@ -68,6 +68,6 @@ export const authService = {
    * @returns {Promise<any>} Server logout response.
    */
   async logout() {
-    return apiClient.post('/users/logout');
+    return apiClient.post('/admin/logout');
   },
 };

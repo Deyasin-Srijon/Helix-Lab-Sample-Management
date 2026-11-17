@@ -97,6 +97,18 @@ export function AuthProvider({ children }) {
    */
   const [loading, setLoading] = useState(true);
 
+  // Authentication notifications are kept here so they remain visible
+  // while React Router changes between the login page and dashboard.
+  const [toast, setToast] = useState(null);
+
+  const showToast = useCallback((message, type = 'success') => {
+    setToast({ message, type, id: Date.now() });
+  }, []);
+
+  const clearToast = useCallback(() => {
+    setToast(null);
+  }, []);
+
   /**
    * On initial mount, verifies active session with the Spring Boot backend.
    *
@@ -157,28 +169,40 @@ export function AuthProvider({ children }) {
         username: authenticatedUsername,
       });
 
+      showToast('Login successful. Welcome to the admin panel.', 'success');
       return { success: true };
     } catch (err) {
       const message =
         err.message || 'Invalid username or password. Please verify your credentials.';
+
+      showToast(message, 'error');
       return { success: false, message };
     }
-  }, []);
+  }, [showToast]);
 
   /**
    * Logs out the administrator by terminating the session on the Spring Boot backend
    * and resetting in-memory React state.
    */
   const logout = useCallback(async () => {
+    let logoutSucceeded = false;
+
     try {
       await authService.logout();
+      logoutSucceeded = true;
     } catch (err) {
-      // Log error defensively, then proceed to clear client-side auth state
+      // The local admin state is cleared even if the backend session has expired.
       console.error('Logout error on backend:', err);
     } finally {
       setAuth({ isAuthenticated: false, username: null });
+
+      if (logoutSucceeded) {
+        showToast('Logout successful. You have been signed out.', 'success');
+      } else {
+        showToast('You have been signed out, but the server session could not be confirmed.', 'error');
+      }
     }
-  }, []);
+  }, [showToast]);
 
   /**
    * Memoize the context value object so consumers only re-render when
@@ -191,8 +215,11 @@ export function AuthProvider({ children }) {
       loading,
       login,
       logout,
+      toast,
+      showToast,
+      clearToast,
     }),
-    [auth, loading, login, logout]
+    [auth, loading, login, logout, toast, showToast, clearToast]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
@@ -201,7 +228,7 @@ export function AuthProvider({ children }) {
 /**
  * Custom React hook for consuming AuthContext.
  *
- * @returns {{ isAuthenticated: boolean, username: string | null, loading: boolean, login: Function, logout: Function }}
+ * @returns {{ isAuthenticated: boolean, username: string | null, loading: boolean, login: Function, logout: Function, toast: Object|null, showToast: Function, clearToast: Function }}
  */
 export function useAuth() {
   const context = useContext(AuthContext);

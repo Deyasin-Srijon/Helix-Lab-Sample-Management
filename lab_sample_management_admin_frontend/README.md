@@ -44,7 +44,7 @@ VITE_API_BASE_URL=http://localhost:8080/api
 npm run dev
 ```
 
-Open the printed local URL, typically `http://localhost:5173`.
+Open the printed local URL, typically `http://localhost:5174`.
 
 ## Authentication & API Endpoints
 
@@ -52,13 +52,13 @@ Authentication is handled securely by the Spring Boot backend using session cook
 
 Required backend endpoints:
 
-- `POST /api/users/login`: Validates administrator credentials and establishes session.
-- `POST /api/users/logout`: Terminates administrator session.
-- `GET /api/users/me`: Verifies active session status on startup.
-- `GET /api/samples`: Retrieves all laboratory sample records.
-- `GET /api/samples/{id}`: Retrieves a single sample record by ID.
-- `PUT /api/samples/{id}`: Updates sample description and status.
-- `DELETE /api/samples/{id}`: Deletes a sample record.
+- `POST /api/admin/login`: Validates administrator credentials and establishes session.
+- `POST /api/admin/logout`: Terminates administrator session.
+- `GET /api/admin/me`: Verifies active session status on startup.
+- `GET /api/admin/samples`: Retrieves all laboratory sample records.
+- `GET /api/admin/samples/{id}`: Retrieves a single sample record by ID.
+- `PUT /api/admin/samples/{id}`: Updates sample description and status.
+- `DELETE /api/admin/samples/{id}`: Deletes a sample record.
 
 Expected sample response shape:
 
@@ -88,3 +88,21 @@ src/
   main.jsx
   index.css
 ```
+
+
+## Separate Admin Backend connection
+
+This Admin Frontend connects to the independent Admin Backend at `http://localhost:8081/api`.
+The User Backend can continue running separately on port `8080`.
+
+
+## Authentication toast notifications
+
+The Admin Frontend displays toast notifications for:
+- Successful administrator login.
+- Failed login (including incorrect username/password).
+- Successful logout.
+- Logout when the backend cannot confirm the session termination.
+
+Authentication toasts are rendered at the application root so they remain visible
+when React Router redirects between pages.
