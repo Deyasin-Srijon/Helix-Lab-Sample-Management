@@ -75,6 +75,79 @@ public class AdminController {
         );
     }
 
+    /**
+     * FILTER SAMPLES BY STATUS
+     *
+     * Endpoint:
+     * GET /api/admin/samples/status/{status}
+     *
+     * Example:
+     * GET /api/admin/samples/status/Completed
+     *
+     * Only authenticated administrators can use this endpoint.
+     */
+    @GetMapping("/samples/status/{status}")
+    public ResponseEntity<List<AdminSampleResponse>> getSamplesByStatus(
+
+            // Read the status from the URL.
+            @PathVariable String status,
+
+            // Spring provides the current HTTP session.
+            HttpSession session
+
+    ) {
+
+        // Check whether an administrator is logged in.
+        checkAdminSession(session);
+
+        // Ask AdminService to retrieve matching records.
+        List<AdminSampleResponse> response =
+                adminService.getSamplesByStatus(status);
+
+        // Return the matching samples with HTTP 200.
+        return new ResponseEntity<>(
+                response,
+                HttpStatus.OK
+        );
+    }
+
+    /**
+     * FILTER SAMPLES BY USER ID
+     *
+     * Endpoint:
+     * GET /api/admin/samples/user/{userId}
+     *
+     * Example:
+     * GET /api/admin/samples/user/5
+     *
+     * This allows an administrator to see all samples
+     * created by a particular user.
+     */
+    @GetMapping("/samples/user/{userId}")
+    public ResponseEntity<List<AdminSampleResponse>> getSamplesByUser(
+
+            // Read the user ID from the URL.
+            @PathVariable Long userId,
+
+            // Spring provides the current HTTP session.
+            HttpSession session
+
+    ) {
+
+        // Check whether an administrator is logged in.
+        checkAdminSession(session);
+
+        // Retrieve all samples associated with this user.
+        List<AdminSampleResponse> response =
+                adminService.getSamplesByUser(userId);
+
+        // Return the matching records.
+        return new ResponseEntity<>(
+                response,
+                HttpStatus.OK
+        );
+    }
+
     // GET ONE SAMPLE
     @GetMapping("/samples/{sampleId}")
     public ResponseEntity<AdminSampleResponse> getSampleById(

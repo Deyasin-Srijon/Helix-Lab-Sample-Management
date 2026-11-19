@@ -10,6 +10,7 @@ import com.letustech.lab_sample_management_backend.user.exception.SampleNotFound
 import com.letustech.lab_sample_management_backend.user.exception.UserNotFoundException;
 import com.letustech.lab_sample_management_backend.user.repository.SampleRepository;
 import com.letustech.lab_sample_management_backend.user.repository.UserRepository;
+import com.letustech.lab_sample_management_backend.user.util.SampleStatusValidator;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -60,7 +61,21 @@ public class SampleService {
                                 )
                         );
 
-        Sample sample = new Sample(request.getId(), request.getDescription(), request.getStatus(), user);
+        // Validate the supplied status before creating the sample.
+        // This also converts the status into the standard format,
+        // such as "created" becoming "Created".
+        String validStatus =
+                SampleStatusValidator.normalize(request.getStatus());
+
+        // Create a new Sample object using the validated status.
+        // The userId is obtained from the authenticated session,
+        // not from the request sent by the chatbot.
+        Sample sample = new Sample(
+                request.getId(),
+                request.getDescription(),
+                validStatus,
+                user
+        );
 
         Sample savedSample =
                 sampleRepository.save(sample);
@@ -176,9 +191,14 @@ public class SampleService {
                 request.getDescription()
         );
 
-        sample.setStatus(
-                request.getStatus()
-        );
+        // Validate the new status before saving the update.
+        // Only Created, In Progress and Completed are accepted.
+        String validStatus =
+                SampleStatusValidator.normalize(request.getStatus());
+
+        // Update only the two permitted fields.
+        sample.setDescription(request.getDescription());
+        sample.setStatus(validStatus);
 
         Sample updatedSample =
                 sampleRepository.save(sample);

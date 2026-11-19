@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -163,6 +164,31 @@ public class GlobalExceptionHandler {
         return createResponse(
                 "Database operation failed",
                 HttpStatus.INTERNAL_SERVER_ERROR
+        );
+    }
+
+    // =========================
+    // INVALID SAMPLE STATUS
+    // =========================
+
+    /**
+     * Handles invalid sample status errors.
+     *
+     * For example, if someone submits "PROCESSING"
+     * instead of one of the three allowed statuses,
+     * the backend returns HTTP 400.
+     */
+    @ExceptionHandler(ResponseStatusException.class)
+    public ResponseEntity<Map<String, String>>
+    handleResponseStatusException(
+            ResponseStatusException exception
+    ) {
+
+        return createResponse(
+                exception.getReason() != null
+                        ? exception.getReason()
+                        : "Invalid request",
+                HttpStatus.BAD_REQUEST
         );
     }
 

@@ -6,8 +6,11 @@ import com.letustech.lab_sample_management_admin_backend.admin.dto.AdminSampleRe
 import com.letustech.lab_sample_management_admin_backend.admin.dto.SampleUpdateRequest;
 import com.letustech.lab_sample_management_admin_backend.user.entity.Sample;
 import com.letustech.lab_sample_management_admin_backend.user.repository.SampleRepository;
+import com.letustech.lab_sample_management_admin_backend.admin.util.SampleStatusValidator;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -76,24 +79,54 @@ public class AdminService {
     }
 
     // UPDATE SAMPLE DESCRIPTION AND STATUS
+
+    /**
+     * Updates an existing sample.
+     *
+     * Administrators can update samples belonging to any user.
+     *
+     * However, only two fields can be modified:
+     * 1. Description
+     * 2. Status
+     */
     @Transactional
     public AdminSampleResponse updateSample(
             Long sampleId,
             SampleUpdateRequest request
     ) {
-        Optional<Sample> optionalSample = sampleRepository.findById(sampleId);
 
+        // Search for the sample using its ID.
+        // Unlike the user service, there is no user ownership filter.
+        Optional<Sample> optionalSample =
+                sampleRepository.findById(sampleId);
+
+        // If the sample does not exist, return an error.
         if (optionalSample.isEmpty()) {
+
             throw new RuntimeException("Sample not found");
         }
 
+        // Retrieve the existing database record.
         Sample sample = optionalSample.get();
+
+        // Validate the new status.
+        // Invalid status values will be rejected.
+        String validStatus =
+                SampleStatusValidator.normalize(request.getStatus());
+
+        // Update only the permitted fields.
         sample.setDescription(request.getDescription());
-        sample.setStatus(request.getStatus());
+        sample.setStatus(validStatus);
 
-        Sample updatedSample = sampleRepository.save(sample);
+        // Save the updated sample in MySQL.
+        Sample updatedSample =
+                sampleRepository.save(sample);
 
-        return convertToResponse(updatedSample, "Sample updated successfully");
+        // Convert the saved entity into an API response.
+        return convertToResponse(
+                updatedSample,
+                "Sample updated successfully"
+        );
     }
 
     // DELETE SAMPLE
@@ -110,6 +143,83 @@ public class AdminService {
 
         return "Sample deleted successfully";
     }
+
+    /**
+     * Retrieves samples matching a particular status.
+     *
+     * Only administrators can access this operation.
+     * The AdminController checks the admin session before
+     * calling this service method.
+     */
+    @Transactional(readOnly = true)
+    public List<AdminSampleResponse> getSamplesByStatus(
+            String status
+    ) {
+
+        // Validate and normalize the supplied status.
+        String validStatus =
+                SampleStatusValidator.normalize(status);
+
+        // Retrieve all samples having the requested status.
+        List<Sample> samples =
+                sampleRepository.findByStatusIgnoreCase(validStatus);
+
+        // Create a list to hold the API response objects.
+        List<AdminSampleResponse> responses =
+                new ArrayList<>();
+
+        // Convert each database entity into a response object.
+        for (Sample sample : samples) {
+
+            responses.add(
+                    convertToResponse(sample, "Sample found")
+            );
+        }
+
+        return responses;
+    }
+
+    /**
+     * Retrieves all samples created by a particular user.
+     *
+     * This operation is intended for administrators.
+     *
+     * Example:
+     * If userId = 5, return all samples belonging to user 5.
+     */
+    @Transactional(readOnly = true)
+    public List<AdminSampleResponse> getSamplesByUser(
+            Long userId
+    ) {
+
+        // Check that the supplied user ID is valid.
+        if (userId == null || userId <= 0) {
+
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "A valid user ID is required"
+            );
+        }
+
+        // Retrieve samples associated with the specified user.
+        List<Sample> samples =
+                sampleRepository.findByUser_Id(userId);
+
+        // Prepare the response list.
+        List<AdminSampleResponse> responses =
+                new ArrayList<>();
+
+        // Convert every sample into an API response.
+        for (Sample sample : samples) {
+
+            responses.add(
+                    convertToResponse(sample, "Sample found")
+            );
+        }
+
+        return responses;
+    }
+
 
     // CONVERT ENTITY TO RESPONSE
     private AdminSampleResponse convertToResponse(
