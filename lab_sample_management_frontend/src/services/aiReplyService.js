@@ -21,6 +21,7 @@ export async function generateDummyReply(query) {
 
       headers: {
         "Content-Type": "application/json",
+        "X-Chat-Portal": "USER",
       },
 
       credentials: "include",

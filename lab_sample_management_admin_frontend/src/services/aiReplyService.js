@@ -26,6 +26,7 @@ export async function generateDummyReply(query) {
       // Tell the backend we are sending JSON.
       headers: {
         "Content-Type": "application/json",
+        "X-Chat-Portal": "ADMIN",
       },
 
       // Important: send authentication cookies with this request.

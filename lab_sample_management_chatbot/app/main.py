@@ -82,6 +82,10 @@ async def chat(request: ChatRequest, http_request: Request):
         user_cookie = http_request.cookies.get("JSESSIONID")
         admin_cookie = http_request.cookies.get("ADMINSESSIONID")
 
+        # Which app (User or Admin) is this chat widget running in?
+        # Only selects WHICH cookie is verified; never grants a role.
+        portal = http_request.headers.get("X-Chat-Portal")
+
         print("CHAT: Starting authentication")
 
         # ---------------------------------------------
@@ -91,7 +95,8 @@ async def chat(request: ChatRequest, http_request: Request):
         print("CHAT: Admin cookie present =", bool(admin_cookie))
         auth_context = await authenticate_chat_request(
             user_cookie=user_cookie,
-            admin_cookie=admin_cookie
+            admin_cookie=admin_cookie,
+            portal=portal
         )
 
         print("CHAT: Authentication successful")

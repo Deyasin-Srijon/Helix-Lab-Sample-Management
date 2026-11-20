@@ -15,6 +15,7 @@ No chat history is persisted.
 
 import json
 import logging
+import re
 
 from app.mcp_client.client import discover_mcp_tools
 from app.mcp_client.groq_tools import build_groq_tools
@@ -65,7 +66,21 @@ async def process_chat_with_tools(user_message, auth_context):
     """
 
     # --------------------------------------------------
-    # STEP 1: Discover MCP tools
+    # STEP 1: Normalize authenticated role
+    # --------------------------------------------------
+
+    raw_role = getattr(auth_context, "role", None)
+
+    role = str(raw_role or "").strip().upper()
+
+    # Handle common role formats.
+    if role.startswith("ROLE_"):
+        role = role[5:]
+
+    logger.info("Authenticated role received: %s", role)
+
+    # --------------------------------------------------
+    # STEP 2: Discover MCP tools
     # --------------------------------------------------
 
     try:
@@ -80,52 +95,113 @@ async def process_chat_with_tools(user_message, auth_context):
         )
 
     # --------------------------------------------------
-    # STEP 2: Filter and convert tools for the role
+    # STEP 3: Validate role
+    # --------------------------------------------------
+
+    if role not in ("USER", "ADMIN"):
+        logger.error("Unrecognized authenticated role: %r", raw_role)
+
+        return (
+            "I'm sorry, but I can't process that request right now "
+            "because I'm unable to verify your authenticated role."
+        )
+
+    # --------------------------------------------------
+    # STEP 4: Build role-specific tools
     # --------------------------------------------------
 
     try:
         groq_tools = build_groq_tools(
-            auth_context.role,
+            role,
             discovered_tools
         )
 
     except Exception:
-        logger.exception(
-            "Failed to build role-specific Groq tools"
-        )
+        logger.exception("Failed to build role-specific Groq tools")
 
         return (
             "I couldn't prepare the available sample management "
             "operations. Please try again."
         )
 
+    available_tool_names = [
+        tool["function"]["name"]
+        for tool in groq_tools
+    ]
+
+    logger.info(
+        "Role: %s | Available tools: %s",
+        role,
+        available_tool_names
+    )
+
     # --------------------------------------------------
-    # STEP 3: Create temporary messages for this request
+    # STEP 5: Handle Admin sample creation restriction
     # --------------------------------------------------
+
+    sample_creation_pattern = re.compile(
+        r"\b(create|creating|register|registered|registration|"
+        r"add|adding|submit|submitting)\b.{0,80}\b(sample|samples)\b"
+        r"|\b(sample|samples)\b.{0,80}\b(create|register|add|submit)\b",
+        re.IGNORECASE
+    )
+
+    if role == "ADMIN" and sample_creation_pattern.search(user_message):
+
+        return (
+            "Sample creation is not available for the Admin role. "
+            "This service is intended for authorized User accounts."
+        )
+
+    # --------------------------------------------------
+    # STEP 6: Create role-specific instructions
+    # --------------------------------------------------
+
+    if role == "ADMIN":
+
+        role_instructions = """
+        You are authenticated as an ADMIN.
+
+        You may retrieve, filter, update, and delete existing samples
+        using your authorized tools.
+
+        Sample creation is strictly prohibited for ADMIN.
+
+        If the user asks to create, register, add, or submit a sample,
+        refuse that request. Do not call any creation tool.
+
+        You must not apply the Admin sample creation restriction
+        to USER accounts.
+        """
+
+    elif role == "USER":
+
+        role_instructions = """
+        AUTHENTICATED ROLE: USER
+
+        Sample creation is ALLOWED for this authenticated USER.
+
+        You MUST NOT refuse sample creation by using any Admin restriction.
+
+        If the user asks how to register, create, add, or submit a sample:
+        - Explain the sample registration process if they are asking for guidance.
+        - If they want to actually create a sample, use the create_sample tool.
+        - If required information is missing, ask only for the missing information.
+        - Never ask for a User ID or session ID.
+        - Never invent sample data.
+        - Do not claim a sample was created unless the create_sample tool
+        confirms success.
+
+        The Admin sample creation restriction does NOT apply to this USER.
+
+        Continue to support all other authorized USER operations,
+        including retrieving samples and checking sample statuses.
+        """
 
     messages = [
         {
             "role": "system",
-            "content": (
-                    SYSTEM_PROMPT
-                    + f"\n\nThe authenticated application role for this request is: "
-                      f"{auth_context.role}."
-                    + (
-                        "\nYou are authenticated as an ADMIN. You have administrator "
-                        "privileges for managing existing samples. You may retrieve, "
-                        "update, filter, and delete samples according to your permitted "
-                        "tools. However, you are NOT allowed to create samples. "
-                        "If the Admin requests sample creation in any form, respond "
-                        "exactly with: 'Sample creation is not available for the Admin "
-                        "role. This service is intended for authorized User accounts.' "
-                        "Do not ask for sample details, do not attempt creation, and "
-                        "do not expose internal tool names."
-                        if auth_context.role == "ADMIN"
-                        else
-                        "\nYou are authenticated as a USER. You may only delete "
-                        "samples belonging to this user using delete_my_sample."
-                    )
-            )
+            "content": SYSTEM_PROMPT + "\n\n" + role_instructions
         },
         {
             "role": "user",
@@ -134,7 +210,7 @@ async def process_chat_with_tools(user_message, auth_context):
     ]
 
     # --------------------------------------------------
-    # STEP 4: Start the Groq tool-calling loop
+    # STEP 7: Start Groq tool-calling loop
     # --------------------------------------------------
 
     for round_number in range(MAX_TOOL_ROUNDS):
@@ -160,13 +236,42 @@ async def process_chat_with_tools(user_message, auth_context):
         assistant_message = completion.choices[0].message
 
         # --------------------------------------------------
-        # STEP 5: If Groq did not request a tool,
-        # return its normal response.
+        # STEP 8: Return normal AI response
         # --------------------------------------------------
 
         if not assistant_message.tool_calls:
+            response_text = assistant_message.content or ""
+            response_text = response_text.strip()
 
-            response_text = assistant_message.content
+            # Safeguard against Groq incorrectly applying
+            # the Admin restriction to an authenticated User.
+            if role == "USER" and sample_creation_pattern.search(user_message):
+
+                admin_restriction_phrases = [
+                    "creating new samples is only allowed for regular user accounts",
+                    "as an administrator, i can view",
+                    "sample creation is not available for the admin role",
+                    "as an admin, i cannot add new samples",
+                ]
+
+                normalized_response = response_text.lower()
+
+                if any(
+                    phrase in normalized_response
+                    for phrase in admin_restriction_phrases
+                ):
+                    logger.warning(
+                        "Groq incorrectly applied Admin sample creation "
+                        "restriction to authenticated USER."
+                    )
+
+                    return (
+                        "You are logged in as a User, so you are permitted "
+                        "to create samples.\n\n"
+                        "To register a new sample, provide the required sample "
+                        "information. I can help you complete the registration "
+                        "process. No sample has been created yet."
+                    )
 
             if not response_text:
                 return (
@@ -174,10 +279,10 @@ async def process_chat_with_tools(user_message, auth_context):
                     "Please try again."
                 )
 
-            return response_text.strip()
+            return response_text
 
         # --------------------------------------------------
-        # STEP 6: Append Groq's tool-call message.
+        # STEP 9: Append assistant tool calls
         # --------------------------------------------------
 
         messages.append(
@@ -187,14 +292,13 @@ async def process_chat_with_tools(user_message, auth_context):
         )
 
         # --------------------------------------------------
-        # STEP 7: Execute each requested tool.
+        # STEP 10: Execute tools
         # --------------------------------------------------
 
         for tool_call in assistant_message.tool_calls:
 
             tool_name = tool_call.function.name
 
-            # Groq provides arguments as a JSON string.
             try:
                 tool_arguments = json.loads(
                     tool_call.function.arguments or "{}"
@@ -207,16 +311,10 @@ async def process_chat_with_tools(user_message, auth_context):
 
             except (json.JSONDecodeError, ValueError):
 
-                tool_result_text = json.dumps(
-                    {
-                        "success": False,
-                        "error": (
-                            "Invalid tool arguments returned by AI. "
-                            "The operation was not executed."
-                        )
-                    },
-                    ensure_ascii=False
-                )
+                tool_result_text = json.dumps({
+                    "success": False,
+                    "error": "Invalid tool arguments returned by AI.",
+                })
 
                 messages.append({
                     "role": "tool",
@@ -227,7 +325,7 @@ async def process_chat_with_tools(user_message, auth_context):
                 continue
 
             # --------------------------------------------------
-            # STEP 7A: Execute the MCP tool.
+            # STEP 10A: Execute MCP tool
             # --------------------------------------------------
 
             try:
@@ -237,15 +335,19 @@ async def process_chat_with_tools(user_message, auth_context):
                     auth_context=auth_context,
                 )
 
-                tool_result_text = serialize_tool_result(mcp_result)
+                tool_result_text = serialize_tool_result(
+                    mcp_result
+                )
 
             except Exception as exc:
+
                 actual_mcp_error = extract_mcp_error(exc)
 
                 if actual_mcp_error:
+
                     logger.warning(
                         "MCP tool returned an error: %s",
-                        actual_mcp_error,
+                        actual_mcp_error
                     )
 
                     tool_result_text = json.dumps({
@@ -253,16 +355,16 @@ async def process_chat_with_tools(user_message, auth_context):
                         "tool": tool_name,
                         "error": str(actual_mcp_error),
                         "instruction": (
-                            "Explain the actual tool error to the user clearly. "
-                            "Do not claim the service is unavailable unless it is "
-                            "actually unavailable. Do not claim the operation succeeded."
-                        ),
+                            "Explain the actual tool error clearly. "
+                            "Do not claim success."
+                        )
                     })
 
                 else:
+
                     logger.exception(
                         "Unexpected MCP tool execution failure: %s",
-                        tool_name,
+                        tool_name
                     )
 
                     tool_result_text = json.dumps({
@@ -270,13 +372,13 @@ async def process_chat_with_tools(user_message, auth_context):
                         "tool": tool_name,
                         "error": "Unexpected tool execution failure.",
                         "instruction": (
-                            "Explain that the operation could not be completed. "
+                            "Explain that the operation failed. "
                             "Do not claim success."
-                        ),
+                        )
                     })
 
             # --------------------------------------------------
-            # STEP 7D: Send result/error back to Groq.
+            # STEP 10B: Return tool result to Groq
             # --------------------------------------------------
 
             messages.append({
@@ -286,12 +388,12 @@ async def process_chat_with_tools(user_message, auth_context):
             })
 
     # --------------------------------------------------
-    # STEP 8: Stop if the AI exceeded the tool-call limit.
+    # STEP 11: Tool-call limit reached
     # --------------------------------------------------
 
     logger.warning(
         "Maximum tool rounds reached for role %s",
-        auth_context.role
+        role
     )
 
     return (
