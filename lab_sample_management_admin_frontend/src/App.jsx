@@ -58,6 +58,7 @@ import { checkBackend } from './services/healthService';
 import AdminDashboardPage from './pages/AdminDashboardPage';
 import AdminLoginPage from './pages/AdminLoginPage';
 import EditSamplePage from './pages/EditSamplePage';
+import AIChatPage from './pages/AIChatPage';
 
 /**
  * Checks backend availability once whenever the admin website is loaded.
@@ -155,6 +156,26 @@ export default function App() {
               element={
                 <ProtectedRoute>
                   <EditSamplePage />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Protected route: AI Chat Assistant with interactive MorphOrb */}
+            <Route
+              path="/admin/ai-chat"
+              element={
+                <ProtectedRoute>
+                  <AIChatPage />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Convenience alias redirecting /ai-chat to /admin/ai-chat */}
+            <Route
+              path="/ai-chat"
+              element={
+                <ProtectedRoute>
+                  <AIChatPage />
                 </ProtectedRoute>
               }
             />

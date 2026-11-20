@@ -160,3 +160,52 @@ export function BeakerIcon({ className = 'h-6 w-6' }) {
     </svg>
   );
 }
+
+export function SparklesIcon({ className = 'h-5 w-5' }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M9.8 15.9 9 18.8l-.8-2.9a4.5 4.5 0 0 0-3.1-3.1L2.2 12l2.9-.8a4.5 4.5 0 0 0 3.1-3.1L9 5.2l.8 2.9a4.5 4.5 0 0 0 3.1 3.1l2.9.8-2.9.8a4.5 4.5 0 0 0-3.1 3.1Z"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="m18.3 8.7-.3 1.1-.3-1.1a3.4 3.4 0 0 0-2.5-2.5L14.2 6l1-.3a3.4 3.4 0 0 0 2.5-2.5L18 2.2l.3 1a3.4 3.4 0 0 0 2.5 2.5L21.8 6l-1 .3a3.4 3.4 0 0 0-2.5 2.4Z"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+export function ChatBubbleIcon({ className = 'h-5 w-5' }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M8.5 19H8a4 4 0 0 1-4-4V7a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v8a4 4 0 0 1-4 4h-1.5L8.5 22v-3Z"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+export function SendIcon({ className = 'h-5 w-5' }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="m22 2-11 11M22 2l-7 20-4-9-9-4 20-7z"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}

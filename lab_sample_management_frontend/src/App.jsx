@@ -20,6 +20,7 @@ import {
 } from './context/ToastContext';
 
 import AddSamplePage from './pages/AddSamplePage';
+import AIChatPage from './pages/AIChatPage';
 import AuthPage from './pages/AuthPage';
 import DashboardPage from './pages/DashboardPage';
 import EditSamplePage from './pages/EditSamplePage';
@@ -100,6 +101,11 @@ function Application() {
                 <Route
                   path="/view-samples"
                   element={<ViewSamplesPage />}
+                />
+
+                <Route
+                  path="/ai-chat"
+                  element={<AIChatPage />}
                 />
 
                 <Route

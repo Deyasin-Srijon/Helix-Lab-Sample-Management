@@ -6,6 +6,8 @@ import com.letustech.lab_sample_management_mcp_server.dto.SampleUpdateRequest;
 import org.springframework.ai.mcp.annotation.McpTool;
 import org.springframework.ai.mcp.annotation.McpToolParam;
 import org.springframework.stereotype.Component;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * MCP tools available to authenticated administrators.
@@ -162,13 +164,13 @@ public class AdminSampleTools {
 
             @McpToolParam(
                     description = "New sample description",
-                    required = true
+                    required = false
             )
             String description,
 
             @McpToolParam(
                     description = "New status: Created, In Progress, or Completed",
-                    required = true
+                    required = false
             )
             String status,
 
@@ -182,20 +184,68 @@ public class AdminSampleTools {
         // Validate sample ID.
         validateSampleId(sampleId);
 
-        // Validate description.
-        if (description == null || description.isBlank()) {
+        // Ensure at least one field is provided for update.
+        if ((description == null || description.isBlank())
+                && (status == null || status.isBlank())) {
             throw new IllegalArgumentException(
-                    "Sample description cannot be empty."
+                    "Please provide either a new description or a new status."
             );
         }
 
-        // Validate and normalize the supplied status.
-        String normalizedStatus = normalizeStatus(status);
+        // Validate description only when it is provided.
+        if (description != null && description.isBlank()) {
+            throw new IllegalArgumentException(
+                    "Sample description cannot be blank."
+            );
+        }
 
-        // Construct the DTO expected by the Admin Backend.
+        // Validate status only when it is provided.
+        String normalizedStatus = null;
+
+        if (status != null && !status.isBlank()) {
+            normalizedStatus = normalizeStatus(status);
+        }
+
+        // Fetch the existing sample before updating.
+        String existingSampleResponse = backendApiClient.adminGet(
+                "/api/admin/samples/" + sampleId,
+                adminSessionId
+        );
+
+        // Parse the existing sample JSON.
+        ObjectMapper objectMapper = new ObjectMapper();
+        JsonNode existingSample;
+
+        try {
+            existingSample = objectMapper.readTree(existingSampleResponse);
+        } catch (tools.jackson.core.JacksonException exception) {
+            throw new IllegalStateException(
+                    "Unable to read the existing sample details."
+            );
+        }
+
+        // Preserve existing values when fields are not provided.
+        String existingDescription =
+                existingSample.get("description").asString();
+
+        String existingStatus =
+                existingSample.get("status").asString();
+
+        // Merge provided values with existing values.
+        String finalDescription =
+                description != null
+                        ? description.trim()
+                        : existingDescription;
+
+        String finalStatus =
+                normalizedStatus != null
+                        ? normalizedStatus
+                        : existingStatus;
+
+        // Construct the complete DTO expected by the Admin Backend.
         SampleUpdateRequest request = new SampleUpdateRequest(
-                description.trim(),
-                normalizedStatus
+                finalDescription,
+                finalStatus
         );
 
         // Build the update endpoint.

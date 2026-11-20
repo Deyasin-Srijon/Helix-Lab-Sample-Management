@@ -7,6 +7,7 @@ const NAV_ITEMS = [
   { to: '/dashboard', label: 'Dashboard' },
   { to: '/add-sample', label: 'Add Sample' },
   { to: '/view-samples', label: 'View Samples' },
+  { to: '/ai-chat', label: 'AI Chat' },
 ];
 
 export default function AppShell({ children }) {

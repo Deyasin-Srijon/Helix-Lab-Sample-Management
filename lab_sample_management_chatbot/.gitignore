@@ -1,0 +1,21 @@
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Virtual environment
+.venv/
+
+# Secrets
+.env
+
+# IDE
+.idea/
+.vscode/
+
+# Logs
+*.log
+
+# Testing and coverage
+.pytest_cache/
+.coverage
+htmlcov/
