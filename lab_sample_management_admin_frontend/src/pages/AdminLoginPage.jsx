@@ -56,7 +56,7 @@
  * - `default function AdminLoginPage()`: The administrator sign-in page component.
  */
 
-import { FlaskConical } from 'lucide-react';
+import { Eye, EyeOff, FlaskConical } from 'lucide-react';
 import { useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -84,6 +84,8 @@ export default function AdminLoginPage() {
 
   /** Form submission in-flight state */
   const [submitting, setSubmitting] = useState(false);
+
+  const [showPassword, setShowPassword] = useState(false);
 
   /**
    * If checking session on startup, display loading indicator
@@ -155,8 +157,11 @@ export default function AdminLoginPage() {
         <form onSubmit={handleSubmit} noValidate className="space-y-5">
           {/* Username / Email Input Field */}
           <div>
-            <label htmlFor="username" className="mb-1.5 block text-sm font-medium text-slate-700">
-              Username
+            <label
+              htmlFor="username"
+              className="mb-1.5 block text-sm font-medium text-slate-700"
+            >
+              Username <span className="text-red-500" aria-hidden="true">*</span>
             </label>
             <input
               id="username"
@@ -166,7 +171,7 @@ export default function AdminLoginPage() {
               value={username}
               onChange={(event) => setUsername(event.target.value)}
               disabled={submitting}
-              className="h-11 w-full rounded-lg border border-slate-300 px-3 text-sm text-slate-900 outline-none transition-shadow duration-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 disabled:bg-slate-50 disabled:text-slate-400"
+              className="h-11 w-full rounded-lg border border-slate-300 px-3 text-sm text-slate-900 !outline-none !ring-0 !shadow-none transition-all duration-200 focus:!border-blue-500 focus:!outline-none focus:!ring-2 focus:!ring-blue-500/15 focus:!shadow-none disabled:bg-slate-50 disabled:text-slate-400"
             />
             {fieldErrors.username && (
               <p className="mt-1 text-sm text-red-600">{fieldErrors.username}</p>
@@ -175,19 +180,41 @@ export default function AdminLoginPage() {
 
           {/* Password Input Field */}
           <div>
-            <label htmlFor="password" className="mb-1.5 block text-sm font-medium text-slate-700">
-              Password
+            <label
+              htmlFor="password"
+              className="mb-1.5 block text-sm font-medium text-slate-700"
+            >
+              Password <span className="text-red-500" aria-hidden="true">*</span>
             </label>
-            <input
-              id="password"
-              name="password"
-              type="password"
-              autoComplete="current-password"
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              disabled={submitting}
-              className="h-11 w-full rounded-lg border border-slate-300 px-3 text-sm text-slate-900 outline-none transition-shadow duration-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 disabled:bg-slate-50 disabled:text-slate-400"
-            />
+
+            <div className="relative">
+              <input
+                id="password"
+                name="password"
+                type={showPassword ? 'text' : 'password'}
+                autoComplete="current-password"
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                disabled={submitting}
+                className="h-11 w-full rounded-lg border border-slate-300 px-3 pr-11 text-sm text-slate-900 !outline-none !ring-0 !shadow-none transition-all duration-200 focus:!border-blue-500 focus:!outline-none focus:!ring-2 focus:!ring-blue-500/15 focus:!shadow-none disabled:bg-slate-50 disabled:text-slate-400"
+              />
+
+              <button
+                type="button"
+                onClick={() => setShowPassword((prev) => !prev)}
+                disabled={submitting}
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+                aria-pressed={showPassword}
+                className="absolute inset-y-0 right-0 flex items-center justify-center px-3 text-slate-400 transition-colors hover:text-slate-700 focus-visible:outline-2 focus-visible:outline-blue-500 disabled:cursor-not-allowed"
+              >
+                {showPassword ? (
+                  <EyeOff className="h-5 w-5" aria-hidden="true" />
+                ) : (
+                  <Eye className="h-5 w-5" aria-hidden="true" />
+                )}
+              </button>
+            </div>
+
             {fieldErrors.password && (
               <p className="mt-1 text-sm text-red-600">{fieldErrors.password}</p>
             )}

@@ -1,17 +1,19 @@
 import { useState } from 'react';
 import { FlaskIcon, SparklesIcon } from '../components/icons';
 import MorphOrb from '../components/ui/ai-thiking-orb-and-input';
+import { useSamples } from '../context/SampleContext';
 import { generateDummyReply } from '../services/aiReplyService';
 
 const SUGGESTED_PROMPTS = [
-  "How many samples are pending?",
-  "What is the cold storage protocol?",
-  "How do I register a new sample?",
-  "What is the procedure for STAT priority samples?",
+  "Show me all my samples.",
+  "Show me samples with status completed.",
+  "How many samples are In progress?",
+  "How can I register a new sample?",
 ];
 
 export default function AIChatPage() {
   const [orbTriggerQuery, setOrbTriggerQuery] = useState('');
+  const { refresh } = useSamples();
 
   // Quick prompt chip click
   const handleSelectPrompt = (promptText) => {
@@ -20,7 +22,13 @@ export default function AIChatPage() {
 
   // Handle MorphOrb submit
   const handleOrbSubmit = async (query) => {
-    return await generateDummyReply(query);
+    const reply = await generateDummyReply(query);
+
+    // The chatbot may have created/updated/deleted samples on the backend,
+    // so re-sync the shared sample state (no full page reload needed).
+    refresh().catch(() => {});
+
+    return reply;
   };
 
   return (

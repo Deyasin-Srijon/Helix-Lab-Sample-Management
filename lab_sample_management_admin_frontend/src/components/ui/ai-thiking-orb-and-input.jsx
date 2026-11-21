@@ -397,11 +397,11 @@ const COLORS = (() => {
   const out = [];
   for (let gi = 0; gi <= G_STEPS; gi++) {
     const g = gi / G_STEPS;
-    // g = 0 (Thinking, Searching, Analyzing): Bright vibrant emerald-mint (20, 184, 140)
-    // g = 1 (Done): Polished emerald green (8, 126, 94) - lighter & more vivid, while still distinct from thinking
-    const r = Math.round(lerp(20, 8, g));
-    const gg = Math.round(lerp(184, 126, g));
-    const b = Math.round(lerp(140, 94, g));
+    // g = 0 (Thinking, Searching, Analyzing): Bright vibrant blue (59, 130, 246)
+    // g = 1 (Done): Polished deep blue (29, 78, 216) - lighter & more vivid, while still distinct from thinking
+    const r = Math.round(lerp(59, 29, g));
+    const gg = Math.round(lerp(130, 78, g));
+    const b = Math.round(lerp(246, 216, g));
     for (let ai = 0; ai <= A_STEPS; ai++)
       out.push(`rgba(${r},${gg},${b},${(ai / A_STEPS).toFixed(3)})`);
   }

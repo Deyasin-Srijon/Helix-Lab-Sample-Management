@@ -92,13 +92,13 @@ export default function Navbar() {
             aria-current={isAIChatActive ? 'page' : undefined}
             className={`inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-all duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 ${
               isAIChatActive
-                ? 'border-emerald-300 bg-emerald-50 text-emerald-800 shadow-xs focus-visible:outline-emerald-600'
+                ? 'border-blue-300 bg-blue-50 text-blue-800 shadow-xs focus-visible:outline-blue-600'
                 : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50 hover:text-slate-900 focus-visible:outline-blue-600'
             }`}
           >
             <Sparkles
               className={`h-4 w-4 transition-colors ${
-                isAIChatActive ? 'text-emerald-600' : 'text-slate-500'
+                isAIChatActive ? 'text-blue-600' : 'text-slate-500'
               }`}
               aria-hidden="true"
             />

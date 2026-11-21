@@ -17,10 +17,10 @@ import MorphOrb from '../components/ui/ai-thiking-orb-and-input';
 import { generateDummyReply } from '../services/aiReplyService';
 
 const SUGGESTED_PROMPTS = [
-  "How many samples are pending?",
-  "What is the cold storage protocol?",
+  "Show me all the samples.",
+  "Show me the details of sample ID 102.",
   "How do I register a new sample?",
-  "What is the procedure for STAT priority samples?",
+  "Show me all the samples in status created.",
 ];
 
 export default function AIChatPage() {
@@ -48,7 +48,7 @@ export default function AIChatPage() {
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             {/* Title & Lab Assistant Branding */}
             <div className="flex items-center gap-3">
-              <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-600 text-white shadow-xs">
+              <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-600 text-white shadow-xs">
                 <SparklesIcon className="h-5 w-5" />
               </span>
               <div>
@@ -62,8 +62,8 @@ export default function AIChatPage() {
             </div>
 
             {/* Active Status Badge */}
-            <div className="inline-flex items-center gap-2 self-start rounded-full border border-emerald-200/80 bg-emerald-50/80 px-3.5 py-1.5 text-xs font-semibold text-emerald-800 sm:self-auto">
-              <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+            <div className="inline-flex items-center gap-2 self-start rounded-full border border-blue-200/80 bg-blue-50/80 px-3.5 py-1.5 text-xs font-semibold text-blue-800 sm:self-auto">
+              <span className="h-2 w-2 rounded-full bg-blue-500 animate-pulse" />
               Thinking Orb Active
             </div>
           </div>
@@ -76,16 +76,16 @@ export default function AIChatPage() {
                 key={promptText}
                 type="button"
                 onClick={() => handleSelectPrompt(promptText)}
-                className="inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3.5 py-1.5 text-xs font-medium text-slate-600 shadow-2xs transition-colors hover:border-emerald-300 hover:bg-emerald-50/40 hover:text-emerald-700 active:scale-95"
+                className="inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3.5 py-1.5 text-xs font-medium text-slate-600 shadow-2xs transition-colors hover:border-blue-300 hover:bg-blue-50/40 hover:text-blue-700 active:scale-95"
               >
-                <FlaskIcon className="h-3.5 w-3.5 text-emerald-600" />
+                <FlaskIcon className="h-3.5 w-3.5 text-blue-600" />
                 {promptText}
               </button>
             ))}
           </div>
         </section>
 
-        {/* Centerpiece Card: Subtle dot grid + central emerald glow + MorphOrb */}
+        {/* Centerpiece Card: Subtle dot grid + central blue glow + MorphOrb */}
         <section className="w-full relative flex min-h-[580px] sm:min-h-[620px] flex-col items-stretch justify-center overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-xs">
           <MorphOrb
             className="w-full h-full flex-1 self-stretch"
