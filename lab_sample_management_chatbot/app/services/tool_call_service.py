@@ -196,6 +196,16 @@ async def process_chat_with_tools(user_message, auth_context):
 
         Continue to support all other authorized USER operations,
         including retrieving samples and checking sample statuses.
+
+        SAMPLE DELETION FOR USER:
+        - When the user asks to delete one of their samples and provides
+        a sample ID, call delete_my_sample IMMEDIATELY.
+        - NEVER ask "would you like me to delete...", "are you sure", or
+        any other confirmation question. The request itself is the
+        confirmation. Confirmation is handled by the application.
+        - Only ask a question if the sample ID is missing.
+        - Report success only after the tool confirms it; if the tool
+        returns an error (e.g. sample not found), explain that error.
         """
 
     messages = [

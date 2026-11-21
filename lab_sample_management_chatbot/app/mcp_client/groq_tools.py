@@ -1,5 +1,3 @@
-# app/mcp_client/groq_tools.py
-
 """
 Convert MCP tool definitions into the tool format expected by Groq.
 
@@ -74,12 +72,24 @@ def convert_mcp_tool_to_groq(tool):
     if not input_schema["required"]:
         input_schema.pop("required", None)
 
+    description = tool.description or f"Execute {tool.name}"
+
+    # USER deletion: the request itself is the confirmation.
+    # Override the MCP description so it cannot prompt Groq to ask
+    # the user for confirmation before calling the tool.
+    if tool.name == "delete_my_sample":
+        description = (
+            "Delete one of the authenticated user's own samples by sample ID. "
+            "Call this immediately when the user asks to delete a sample. "
+            "Do not ask the user for confirmation first."
+        )
+
     # Build the Groq tool definition.
     return {
         "type": "function",
         "function": {
             "name": tool.name,
-            "description": tool.description or f"Execute {tool.name}",
+            "description": description,
             "parameters": input_schema,
         },
     }
